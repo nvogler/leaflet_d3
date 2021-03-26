@@ -13,6 +13,12 @@
 <body>
 
 	<div id="map" style="width: 600px; height: 400px"></div>
+  <div>
+    <label for="nVel">
+      Slide Filter <span id="goal-value">24</span>
+      <input style="width: 200px;" type="range" min="0" max="150" id="goal" value="150" step='1'>
+    </label>
+  </div>
 
 	<script type="text/javascript">
 	
@@ -36,7 +42,8 @@
 		/* Add a LatLng object to each item in the dataset */
 		collection.objects.forEach(function(d) {
 			d.LatLng = new L.LatLng(d.circle.coordinates[0],
-									d.circle.coordinates[1])
+									            d.circle.coordinates[1])
+      d.time = d.circle.time;
 		})
 		
 		var feature = g.selectAll("circle")
@@ -59,6 +66,17 @@
 				}
 			)
 		}
+
+    // Slider
+    d3.select("#goal").on("input", function() {
+      goal = +this.value;
+      d3.select('#goal-value').text(goal);
+
+      svg.selectAll("circle").each(function(d) { 
+          console.log(d);
+          this.style.opacity = d.time < goal ? 0.6 : 0; 
+        });
+    });
 	})			 
 </script>
 </body>
