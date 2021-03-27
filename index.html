@@ -4,119 +4,78 @@
 	<title>d3.js with leaflet.js</title>
 
     <link rel="stylesheet" href="https://d19vzq90twjlae.cloudfront.net/leaflet-0.7/leaflet.css" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script>
+    <link rel="stylesheet" href="http://localhost:8000/d3.slider.css" />  
 
-<!-- <script src="https://d3js.org/d3.v6.min.js"></script> 
-<script src="https://unpkg.com/d3-simple-slider"></script> -->
-
-    <script src="https://d19vzq90twjlae.cloudfront.net/leaflet-0.7/leaflet.js">
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script>
+    <script src="https://d19vzq90twjlae.cloudfront.net/leaflet-0.7/leaflet.js"></script>
+    <script src="http://localhost:8000/d3.slider.js"></script> 
     
 </head>
 <body>
 
 	<div id="map" style="width: 600px; height: 400px"></div>
-  <div>
-    <label for="nVel">
-      Slide Filter <span id="goal-value">24</span>
-      <input style="width: 200px;" type="range" min="2" max="24" id="goal" value="150" step='1'>
-    </label>
-  </div>
-  <h2>Range</h2>
-  <div class="row align-items-center">
-    <div class="col-sm-2"><p id="value-range"></p></div>
-    <div class="col-sm"><div id="slider-range"></div></div>
-  </div>
+
+  <h2>Range Slider: <span id="slider3textmin">0</span>, <span id="slider3textmax">24</span></h2>
+    <div id="slider3"></div>
+
 	<script type="text/javascript">
 	
-        var map = L.map('map').setView([-41.2858, 174.7868], 13);
-        mapLink = 
-            '<a href="http://openstreetmap.org">OpenStreetMap</a>';
-        L.tileLayer(
-            'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; ' + mapLink + ' Contributors',
-            maxZoom: 18,
-            }).addTo(map);
-				
-	/* Initialize the SVG layer */
-	map._initPathRoot()    
+    var map = L.map('map').setView([-41.2858, 174.7868], 13);
+    mapLink = 
+        '<a href="http://openstreetmap.org">OpenStreetMap</a>';
+    L.tileLayer(
+        'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; ' + mapLink + ' Contributors',
+        maxZoom: 18,
+        }).addTo(map);
+          
+    /* Initialize the SVG layer */
+    map._initPathRoot()    
 
-	/* We simply pick up the SVG from the map object */
-	var svg = d3.select("#map").select("svg"),
-	g = svg.append("g");
-	
-	d3.json("http://localhost:8000/locations.json", function(collection) {
-		/* Add a LatLng object to each item in the dataset */
-		collection.objects.forEach(function(d) {
-			d.LatLng = new L.LatLng(d.circle.coordinates[0],
-									            d.circle.coordinates[1])
-      d.time = d.circle.time;
-		})
-		
-		var feature = g.selectAll("circle")
-			.data(collection.objects)
-			.enter().append("circle")
-			.style("stroke", "black")  
-			.style("opacity", .6) 
-			.style("fill", "red")
-			.attr("r", 20);  
-		
-		map.on("viewreset", update);
-		update();
+    /* We simply pick up the SVG from the map object */
+    var svg = d3.select("#map").select("svg"),
+    g = svg.append("g");
+    
+    d3.json("http://localhost:8000/locations.json", function(collection) {
+      /* Add a LatLng object to each item in the dataset */
+      collection.objects.forEach(function(d) {
+        d.LatLng = new L.LatLng(d.circle.coordinates[0],
+                                d.circle.coordinates[1])
+        d.time = d.circle.time;
+      })
+      
+      var feature = g.selectAll("circle")
+        .data(collection.objects)
+        .enter().append("circle")
+        .style("stroke", "black")  
+        .style("opacity", .6) 
+        .style("fill", "red")
+        .attr("r", 20);  
+      
+      map.on("viewreset", update);
+      update();
 
-		function update() {
-			feature.attr("transform", 
-			function(d) { 
-				return "translate("+ 
-					map.latLngToLayerPoint(d.LatLng).x +","+ 
-					map.latLngToLayerPoint(d.LatLng).y +")";
-				}
-			)
-		}
+      function update() {
+        feature.attr("transform", 
+        function(d) { 
+          return "translate("+ 
+            map.latLngToLayerPoint(d.LatLng).x +","+ 
+            map.latLngToLayerPoint(d.LatLng).y +")";
+          }
+        )
+      }
 
-    // Slider
-    d3.select("#goal").on("input", function() {
-      goal = +this.value;
-      d3.select('#goal-value').text(goal);
+      // Slider 2?
+      d3.select('#slider3').call(d3.slider().axis(true).value( [ 0, 24 ] ).on("slide", function(evt, value) {
+        d3.select('#slider3textmin').text(Math.round(value[0]));
+        d3.select('#slider3textmax').text(Math.round(value[1]));
 
-      svg.selectAll("circle").each(function(d) { 
-          console.log(d);
-          this.style.opacity = d.time < goal ? 0.6 : 0; 
-        });
-    });
-
-    // Slider 2
-      // Range
-  var sliderRange = d3
-    .sliderBottom()
-    .min(0)
-    .max(24)
-    .width(300)
-    .tickFormat(d3.format('.2%'))
-    .ticks(5)
-    .default([0.015, 0.02])
-    .fill('#2196f3')
-    .on('onchange', val => {
-      d3.select('p#value-range').text(val.map(d3.format('.2%')).join('-'));
-    });
-
-  var gRange = d3
-    .select('div#slider-range')
-    .append('svg')
-    .attr('width', 500)
-    .attr('height', 100)
-    .append('g')
-    .attr('transform', 'translate(30,30)');
-
-  gRange.call(sliderRange);
-
-  d3.select('p#value-range').text(
-    sliderRange
-      .value()
-      .map(d3.format('.2%'))
-      .join('-')
-  );
-	})			 
+        svg.selectAll("circle").each(function(d) { 
+            console.log(d);
+            this.style.opacity = (d.time < value[1]) &  (d.time > value[0]) ? 0.6 : 0; 
+          });
+      }));
+  })			 
 </script>
 </body>
 </html>
