@@ -9,7 +9,20 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js"></script>
     <script src="https://d19vzq90twjlae.cloudfront.net/leaflet-0.7/leaflet.js"></script>
     <script src="http://localhost:8000/d3.slider.js"></script> 
-    
+    <style>
+      div.tooltip {	
+          position: absolute;			
+          text-align: center;			
+          width: 60px;					
+          height: 28px;					
+          padding: 2px;				
+          font: 12px sans-serif;		
+          background: lightsteelblue;	
+          border: 0px;		
+          border-radius: 8px;			
+          pointer-events: none;			
+      }
+    </style>
 </head>
 <body>
 
@@ -32,6 +45,11 @@
     /* Initialize the SVG layer */
     map._initPathRoot()    
 
+    // Define the div for the tooltip
+    var div = d3.select("body").append("div")	
+    .attr("class", "tooltip")				
+    .style("opacity", 0);
+
     /* We simply pick up the SVG from the map object */
     var svg = d3.select("#map").select("svg"),
     g = svg.append("g");
@@ -50,6 +68,21 @@
         .style("stroke", "black")  
         .style("opacity", .6) 
         .style("fill", "red")
+        .style("pointer-events", "visible")
+        .on("mouseover", function(d) {		
+            console.log(d);
+            div.transition()		
+                .duration(200)		
+                .style("opacity", .9);		
+            div	.html(d.time)	
+                .style("left", (d3.event.pageX) + "px")		
+                .style("top", (d3.event.pageY - 28) + "px");	
+            })					
+        .on("mouseout", function(d) {		
+            div.transition()		
+                .duration(500)		
+                .style("opacity", 0);	
+        })
         .attr("r", 20);  
       
       map.on("viewreset", update);
